@@ -76,13 +76,34 @@ function renderHome(){
     if(ids.length!==3){get("sample-status").textContent="Choose exactly three fragrances.";return;}
     add({id:"discovery",label:"Discovery set · "+ids.map(id=>nameOf(men.find(s=>s.id===id))).join(", ")});
   };
-  get("quiz").onsubmit=(event)=>{
+}
+
+function bindFinder(){
+  const result = get("match");
+  const stages = ["opening","heart","finish"];
+  get("quiz").addEventListener("submit", event => {
     event.preventDefault();
-    const data=new FormData(event.target);
-    const candidates=men.filter(s=>s.family===data.get("family"));
-    const match=candidates.find(s=>wear[s.occasion]===data.get("wear"))||candidates[0];
-    get("match").innerHTML='Try <a href="'+details(match)+'">'+nameOf(match)+'</a>. '+match.line;
-  };
+    const answers = new FormData(event.target);
+    const preferredStage = {Opening:"opening", Heart:"heart", Finish:"finish"}[answers.get("priority")];
+    const ranked = men.map(scent => {
+      let score = scent.family === answers.get("family") ? 4 : 0;
+      if (wear[scent.occasion] === answers.get("wear")) score += 3;
+      const matchedNotes = scent.accords.map(index => notes[index]).filter((note,index) => {
+        const stage = stages[index];
+        const matches = note === answers.get(stage);
+        if (matches) score += stage === preferredStage ? 4 : 2;
+        return matches;
+      });
+      return {scent, score, matchedNotes};
+    }).sort((a,b) => b.score - a.score);
+    const matches = ranked.filter(entry => entry.score > 0).slice(0,3);
+    const suggestions = matches.length ? matches : ranked.slice(0,3);
+    result.innerHTML = "<h2>"+(matches.length ? "Your scent matches" : "Start with these fragrances")+"</h2>"+
+      "<ul>"+suggestions.map(({scent,matchedNotes}) => "<li><h3><a href='"+details(scent)+"'>"+nameOf(scent)+"</a></h3><p>"+scent.line+
+        "</p><p>"+scent.family+" · "+wear[scent.occasion]+(matchedNotes.length ? " · Matches your notes: "+matchedNotes.join(", ") : "")+"</p></li>").join("")+"</ul>";
+    result.hidden = false;
+    result.focus();
+  });
 }
 
 function bindStore(){
@@ -117,3 +138,5 @@ function bindProduct(){
 if (get("home")) renderHome();
 if (get("store")) bindStore();
 if (get("product")) bindProduct();
+
+if (get("quiz")) bindFinder();
