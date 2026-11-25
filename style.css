@@ -63,3 +63,5 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,su
 @media(max-width:430px){.quiz-options{grid-template-columns:1fr}}
 
 .scale .projection-selected{background:#dce8d2;border:2px solid #315a46}.scale .projection-badge{display:inline-block;margin-top:.45rem;padding:.15rem .5rem;border-radius:1rem;background:#315a46;color:#fff8e6;font-weight:650}
+
+.scale .projection-art{display:block;width:100%;height:auto;border-radius:.35rem;margin:0 auto .5rem}
